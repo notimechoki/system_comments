@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Comment
+import bleach
 
 class CommentSerializer(serializers.ModelSerializer):
     replies = serializers.SerializerMethodField()
@@ -16,4 +17,5 @@ class CommentSerializer(serializers.ModelSerializer):
         parent = validated_data.get('parent', None)
         if parent:
             validated_data['parent'] = parent
+        validated_data['text'] = bleach.clean(validated_data['text'], tags=['a', 'code', 'i', 'strong'], attributes={'a': ['href', 'title']})
         return super().create(validated_data)

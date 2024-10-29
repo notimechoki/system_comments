@@ -2,11 +2,19 @@ import React, { useEffect, useState } from 'react';
 import Comment from './Comment';
 import CommentForm from './CommentForm';
 
+const SORT_OPTIONS = {
+  LIFO: 'LIFO',
+  USERNAME: 'USERNAME',
+  EMAIL: 'EMAIL',
+  DATE: 'DATE',
+};
+
 const CommentList = () => {
   const [comments, setComments] = useState([]);
   const [socket, setSocket] = useState(null);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
+  const [sortOption, setSortOption] = useState(SORT_OPTIONS.LIFO);
 
   const loadComments = async (pageNum = 1) => {
     try {
@@ -20,12 +28,40 @@ const CommentList = () => {
         replies: comment.replies || [],
       }));
 
-      setComments(formattedData.filter((comment) => !comment.parent));
+      setComments(
+        sortComments(formattedData.filter((comment) => !comment.parent), sortOption)
+      );
       setPage(pageNum);
     } catch (error) {
       // console.error('Ошибка загрузки комментариев:', error);
     }
   };
+
+  const sortComments = (comments, option) => {
+    let sorted = [...comments];
+    
+    switch (option) {
+      case SORT_OPTIONS.USERNAME:
+        sorted.sort((a, b) => a.username.localeCompare(b.username));
+        break;
+      case SORT_OPTIONS.EMAIL:
+        sorted.sort((a, b) => a.email.localeCompare(b.email));
+        break;
+      case SORT_OPTIONS.DATE:
+        sorted.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        break;
+      case SORT_OPTIONS.LIFO:
+      default:
+        sorted.reverse();
+        break;
+    }
+
+    return sorted;
+  }
+
+  useEffect(() => {
+    setComments((prev) => sortComments(prev, sortOption));
+  }, [sortOption]);
 
   useEffect(() => {
     loadComments(page);
@@ -56,7 +92,7 @@ const CommentList = () => {
               return comment;
             });
           } else {
-            return [...prevComments, { ...newComment, replies: [] }];
+            return sortComments([...prevComments, { ...newComment, replies: [] }], sortOption);
           }
         }
 
@@ -88,7 +124,7 @@ const CommentList = () => {
   };
 
   const handleNewComment = (comment) => {
-    setComments((prevComments) => [...prevComments, { ...comment, replies: [] }]);
+    setComments((prevComments) => sortComments([...prevComments, { ...comment, replies: [] }], sortOption)  );
   };
 
   const handleNextPage = () => {
@@ -106,6 +142,17 @@ const CommentList = () => {
   return (
     <div>
       <CommentForm onSubmit={handleNewComment} />
+
+      <select
+        value={sortOption}
+        onChange={(e) => setSortOption(e.target.value)}
+      >
+        <option value={SORT_OPTIONS.LIFO}>Последние (LIFO)</option>
+        <option value={SORT_OPTIONS.USERNAME}>По имени пользователя</option>
+        <option value={SORT_OPTIONS.EMAIL}>По EMAIL</option>
+        <option value={SORT_OPTIONS.DATE}>По дате добавления</option>
+      </select>
+
       {comments.map((comment) => (
         <Comment
           key={comment.id}

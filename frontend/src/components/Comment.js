@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import CommentForm from './CommentForm';
+import DOMPurify from 'dompurify';
 
 const Comment = ({ comment, onReply, depth = 0 }) => {
   const [showReplyForm, setShowReplyForm] = useState(false);
@@ -39,6 +40,11 @@ const Comment = ({ comment, onReply, depth = 0 }) => {
     setShowReplyForm(false);
   };
 
+  const sanitizedText = DOMPurify.sanitize(comment.text, {
+    ALLOWED_TAGS: ['a', 'code', 'i', 'strong'],
+    ALLOWED_ATTR: { a: ['href', 'title'] },
+  });
+
 
 
   return (
@@ -52,7 +58,7 @@ const Comment = ({ comment, onReply, depth = 0 }) => {
           {showReplyForm ? 'X' : '>'}
         </button>
       </div>
-      <p className="comment-text">{comment.text}</p>
+      <p className="comment-text" dangerouslySetInnerHTML={{ __html: sanitizedText}}></p>
       {comment.image && <img className='comment-img' src={`${comment.image}`} onClick={() => openModal(comment.image)} alt="Comment attachment" />}
       {comment.text_file && <a href={comment.text_file} target='_blank' rel="noopener noreferrer" download>Скачать текстовый файл</a>}
 

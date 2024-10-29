@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import DOMPurify from 'dompurify';
 
 const CommentForm = ({ onSubmit, replyTo }) => {
   const [username, setUsername] = useState('');
@@ -11,6 +12,13 @@ const CommentForm = ({ onSubmit, replyTo }) => {
   const [captchaText, setCaptchaText] = useState('');
   const [userCaptchaInput, setUserCaptchaInput] = useState('');
   const canvasRef = useRef(null);
+
+  const sanitizeInput = (input) => {
+    return DOMPurify.sanitize(input, {
+      ALLOWED_TAGS: ['a', 'code', 'i', 'strong'],
+      ALLOWED_ATTR: ['href', 'title'],
+    });
+  };
 
   const generateRandomText = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -48,7 +56,14 @@ const CommentForm = ({ onSubmit, replyTo }) => {
   };
 
   const handleTextFileChange = (e) => {
-    setTextFile(e.target.files[0]);
+    const file = e.target.files[0];
+    if (file && file.size > 100 * 1024) {
+      alert("Размер превышает 100 КБ.");
+      e.target.value = '';
+      setTextFile(null);
+      return;
+    }
+    setTextFile(file);
   };
 
   const handleSubmit = async (e) => {
@@ -59,11 +74,13 @@ const CommentForm = ({ onSubmit, replyTo }) => {
       generateCaptcha();
       return;
     }
+
+    const sanitizedText = sanitizeInput(text);
   
     const formData = new FormData();
     formData.append('username', username);
     formData.append('email', email);
-    formData.append('text', text);
+    formData.append('text', sanitizedText);
     formData.append('parent', replyTo ? replyTo.id : '');
     if (image) formData.append('image', image);
     if (textFile) formData.append('text_file', textFile);

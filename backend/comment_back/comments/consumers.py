@@ -1,4 +1,5 @@
 import json
+from django.shortcuts import get_object_or_404
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from .models import Comment
@@ -21,7 +22,7 @@ class CommentConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def create_comment(self, data):
         parent_id = data.get('parent')
-        parent = Comment.objects.get(id=parent_id) if parent_id else None
+        parent = get_object_or_404(Comment,id=parent_id) if parent_id else None
         image = data.get('image')
         text_file = data.get('text_file')
         comment = Comment.objects.create(
