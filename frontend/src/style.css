@@ -6,10 +6,13 @@
     text-align: center;
   }
 }
-  
+
+.commentslist{
+  margin: 15px auto 15px;
+}
 .comment {
   max-width: 1280px;
-  margin: 15px auto;
+  margin-top: 15px;
 }
 .comment-header{
   background-color: #ddd;

@@ -153,6 +153,7 @@ const CommentList = () => {
         <option value={SORT_OPTIONS.DATE}>По дате добавления</option>
       </select>
 
+      <div className='commentslist'>
       {comments.map((comment) => (
         <Comment
           key={comment.id}
@@ -160,6 +161,8 @@ const CommentList = () => {
           onReply={addReply}
         />
       ))}
+      </div>
+      
       <div className='pagination'>
         <button onClick={handlePrevPage} disabled={page === 1}>Назад</button>
         <span>Страница {page}</span>
