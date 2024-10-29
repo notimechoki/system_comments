@@ -60,7 +60,7 @@ const Comment = ({ comment, onReply, depth = 0 }) => {
       </div>
       <p className="comment-text" dangerouslySetInnerHTML={{ __html: sanitizedText}}></p>
       {comment.image && <img className='comment-img' src={`${comment.image}`} onClick={() => openModal(comment.image)} alt="Comment attachment" />}
-      {comment.text_file && <a href={comment.text_file} target='_blank' rel="noopener noreferrer" download>Скачать текстовый файл</a>}
+      {comment.text_file && <a className='comment-file-text' href={comment.text_file} target='_blank' rel="noopener noreferrer" download>Скачать текстовый файл</a>}
 
       {showReplyForm && (
         <CommentForm 

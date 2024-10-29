@@ -50,6 +50,15 @@
   max-width: 320px;
   max-height: 240px;
   cursor: pointer;
+  display: block;
+  margin-bottom: 20px;
+}
+.comment-file-text{
+  display: block;
+  margin-bottom: 20px;
+}
+.toggle-replies{
+  margin-bottom: 30px;
 }
 .modal-overlay {
   position:  fixed;
