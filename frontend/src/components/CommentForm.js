@@ -1,39 +1,62 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 const CommentForm = ({ onSubmit, replyTo }) => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [text, setText] = useState('');
   const [image, setImage] = useState(null);
+  const [textFile, setTextFile] = useState(null);
 
-  const [captchaValid, setCaptchaValid] = useState(false);
 
-  const captchaRef = useRef(null);
-  const captchaInitialized = useRef(false);
+  const [captchaText, setCaptchaText] = useState('');
+  const [userCaptchaInput, setUserCaptchaInput] = useState('');
+  const canvasRef = useRef(null);
 
-  useEffect(() => {
-    if (!captchaInitialized.current && window.grecaptcha) {
-      window.grecaptcha.render(captchaRef.current, {
-        sitekey: '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
-        callback: handleCaptchaChange,
-      });
-      captchaInitialized.current = true;
+  const generateRandomText = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let text = '';
+    for (let i = 0; i < 6; i++){
+      text += chars.charAt(Math.floor(Math.random() * chars.length));
     }
+    return text;
+  };
+
+  const generateCaptcha = useCallback(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = '#f0f0f0';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.font = '20px Arial';
+    ctx.fillStyle = '#000';
+
+    const text = generateRandomText();
+    setCaptchaText(text);
+
+    ctx.setTransform(1, 0.1, -0.1, 1, 0, 0);
+    ctx.fillText(text, 10, 30);
   }, []);
 
-  const handleCaptchaChange = (value) => {
-    if (value) setCaptchaValid(true);
-  };
+  useEffect(() => {
+    generateCaptcha();
+  }, [generateCaptcha]);
 
   const handleImageChange = (e) => {
     setImage(e.target.files[0]);
   };
 
+  const handleTextFileChange = (e) => {
+    setTextFile(e.target.files[0]);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!captchaValid){
+    if (userCaptchaInput !== captchaText){
       alert("Пожалуйста, подвердите, что вы не робот.");
+      generateCaptcha();
       return;
     }
   
@@ -43,6 +66,7 @@ const CommentForm = ({ onSubmit, replyTo }) => {
     formData.append('text', text);
     formData.append('parent', replyTo ? replyTo.id : '');
     if (image) formData.append('image', image);
+    if (textFile) formData.append('text_file', textFile);
   
     try {
       const response = await fetch('http://127.0.0.1:8000/api/comments/', {
@@ -51,7 +75,7 @@ const CommentForm = ({ onSubmit, replyTo }) => {
       });
   
       if (!response.ok) {
-        const errorData = await response.json();
+        // const errorData = await response.json();
         // console.error('Ошибка загрузки:', errorData);
         return;
       }
@@ -63,6 +87,8 @@ const CommentForm = ({ onSubmit, replyTo }) => {
       setEmail('');
       setText('');
       setImage(null);
+      setUserCaptchaInput('');
+      generateCaptcha();
     } catch (error) {
       console.error('Ошибка сети:', error);
     }
@@ -87,12 +113,32 @@ const CommentForm = ({ onSubmit, replyTo }) => {
         value={text}
         onChange={(e) => setText(e.target.value)}
       />
-      <input
-        type='file'
-        onChange={handleImageChange}
-      />
+      <div className="input-group">
+        <label htmlFor="imageUpload">Загрузить изображение:</label>
+        <input
+          id="imageUpload"
+          type="file"
+          onChange={handleImageChange}
+        />
+      </div>
 
-      <div ref={captchaRef} className="g-recaptcha" />
+      <div className="input-group">
+        <label htmlFor="textFileUpload">Загрузить текстовый файл:</label>
+        <input
+          id="textFileUpload"
+          type="file"
+          accept=".txt"
+          onChange={handleTextFileChange}
+        />
+      </div>
+
+      <canvas ref={canvasRef} width={120} height={40} style={{ border: '1px solid #000' }} />
+      <input
+        type="text"
+        placeholder="Введите капчу"
+        value={userCaptchaInput}
+        onChange={(e) => setUserCaptchaInput(e.target.value)}
+      />
       <button type="submit">{replyTo ? "Reply" : "Add Comment"}</button>
     </form>
   );

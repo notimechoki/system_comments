@@ -23,11 +23,13 @@ class CommentConsumer(AsyncWebsocketConsumer):
         parent_id = data.get('parent')
         parent = Comment.objects.get(id=parent_id) if parent_id else None
         image = data.get('image')
+        text_file = data.get('text_file')
         comment = Comment.objects.create(
             username=data['username'],
             email=data['email'],
             text=data['text'],
             parent=parent,
-            image=image  # Здесь image - это URL файла
+            image=image,
+            text_file=text_file
         )
         return CommentSerializer(comment).data

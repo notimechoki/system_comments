@@ -3,6 +3,19 @@ import CommentForm from './CommentForm';
 
 const Comment = ({ comment, onReply, depth = 0 }) => {
   const [showReplyForm, setShowReplyForm] = useState(false);
+  const [showReplies, setShowReplies] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalImage, setModalImage] = useState(null);
+
+  const openModal = (image) => {
+    setModalImage(image);
+    setIsModalOpen(true);
+  }
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setModalImage(null);
+  }
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -26,6 +39,8 @@ const Comment = ({ comment, onReply, depth = 0 }) => {
     setShowReplyForm(false);
   };
 
+
+
   return (
     <div className="comment" style={{ marginLeft: `${depth * 20}px` }}>
       <div className='comment-header'>
@@ -38,7 +53,8 @@ const Comment = ({ comment, onReply, depth = 0 }) => {
         </button>
       </div>
       <p className="comment-text">{comment.text}</p>
-      {comment.image && <img className='comment-img' src={`${comment.image}`} alt="Comment attachment" />}
+      {comment.image && <img className='comment-img' src={`${comment.image}`} onClick={() => openModal(comment.image)} alt="Comment attachment" />}
+      {comment.text_file && <a href={comment.text_file} target='_blank' rel="noopener noreferrer" download>Скачать текстовый файл</a>}
 
       {showReplyForm && (
         <CommentForm 
@@ -48,7 +64,13 @@ const Comment = ({ comment, onReply, depth = 0 }) => {
         />
       )}
       
-      {comment.replies.length > 0 && (
+      {comment.replies && comment.replies.length > 0 && (
+        <button className="toggle-replies" onClick={() => setShowReplies(!showReplies)}>
+          {showReplies ? 'Скрыть ответы' : 'Показать ответы'}
+        </button>
+      )}
+
+      {showReplies && comment.replies.length > 0 && (
         <div className="replies">
           {comment.replies.map((reply) => (
             <Comment
@@ -58,6 +80,15 @@ const Comment = ({ comment, onReply, depth = 0 }) => {
               depth={depth + 1}
             />
           ))}
+        </div>
+      )}
+
+      {isModalOpen && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <span className="close-button" onClick={closeModal}>&times;</span>
+            <img src={modalImage} alt="Enlarged Comment Attachment" className="modal-image" />
+          </div>
         </div>
       )}
     </div>

@@ -36,7 +36,7 @@ system_comments/
 ### Шаг 1: Клонирование репозитория
 Сначала клонируйте репозиторий на локальную машину:
 ```bash
-git clone <URL репозитория>
+git clone https://github.com/notimechoki/system_comments.git
 cd system_comments
 ```
 

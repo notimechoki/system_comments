@@ -6,6 +6,7 @@ class Comment(models.Model):
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     image = models.ImageField(upload_to='comment_images/', null=True, blank=True)
+    text_file = models.FileField(upload_to='comment_files/', null=True, blank=True)
     parent = models.ForeignKey(
         'self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies'
     )
