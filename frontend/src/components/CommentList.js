@@ -86,7 +86,7 @@ const CommentList = () => {
               if (comment.id === newComment.parent) {
                 return {
                   ...comment,
-                  replies: [...(comment.replies || []).filter(r => r.id !== newComment.id), newComment], // Добавляем новый ответ, удаляя временный
+                  replies: [...(comment.replies || []).filter(r => r.id !== newComment.id), newComment],
                 };
               }
               return comment;
